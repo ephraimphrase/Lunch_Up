@@ -22,7 +22,7 @@ class Meal(models.Model):
     def __str__(self):
         return self.name
 
-class Tray(models.Model):
+class TrayItem(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     meal = models.ForeignKey(Meal, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
@@ -34,6 +34,7 @@ class Order(models.Model):
     number = models.CharField(max_length=150)
     station = models.ForeignKey(Station, on_delete=models.CASCADE)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    meal = models.ManyToManyField(Meal)
 
     def __str__(self):
         return f'Order {self.number}'

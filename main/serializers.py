@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import Tray, Station, Meal
+from .models import TrayItem, Station, Meal
 
-class TraySerializer(serializers.ModelSerializer):
+class TrayItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Tray
+        model = TrayItem
         fields = '__all__'
 
 class StationSerializer(serializers.ModelSerializer):
