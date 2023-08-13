@@ -34,7 +34,8 @@ class Order(models.Model):
     number = models.CharField(max_length=150)
     station = models.ForeignKey(Station, on_delete=models.CASCADE)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    meal = models.ManyToManyField(Meal)
+    tray_item = models.ManyToManyField(TrayItem)
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Order {self.number}'
