@@ -36,8 +36,8 @@ class TrayItemView(APIView):
         return Response(status=status.HTTP_200_OK)
     
 class StationView(APIView):
-    def get(self, request):
-        station = Station.objects.all()
+    def get(self, request, location):
+        station = Station.objects.filter(location=location)
         serializer = StationSerializer(station, many=True)
 
         return Response(serializer.data)
