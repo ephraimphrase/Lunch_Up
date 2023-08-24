@@ -26,19 +26,23 @@ class RegisterView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
 
         try:
             user = User.objects.get(username=username)
 
             return Response({"error":"User Already Exists"}, status=status.HTTP_400_BAD_REQUEST)
         except:
-            user = User.objects.create_user(username=username, password=password, email=email)
+            user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
             user.save()
+
+            serializer = UserSerializer(user)
 
             refresh = RefreshToken.for_user(user)
             token = str(refresh.access_token)
 
-            return Response({"token":token, "refresh":str(refresh)}, status=status.HTTP_201_CREATED)
+            return Response({"token":token, "refresh":str(refresh), "user":serializer.data}, status=status.HTTP_201_CREATED,)
         
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])        
@@ -61,7 +65,7 @@ class UserDetailView(APIView):
     def get(self, request, pk):
         user = User.objects.get(username=pk)
         serializer = UserSerializer(user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk):
         user = User.objects.get(username=pk)

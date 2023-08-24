@@ -21,10 +21,12 @@ class TrayItemView(APIView):
             tray.quantity += 1
             tray.save()
         
-        return Response({'message':'Added to Cart'}, status=status.HTTP_201_CREATED)
+        serializer = TrayItemSerializer(tray, many=True)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def get(self, request, pk):
-        owner = User.objects.get(id=pk)
+        owner = User.objects.get(username=pk)
         tray = TrayItem.objects.filter(owner=owner)
         serializer = TrayItemSerializer(tray, many=True)
 
@@ -33,8 +35,10 @@ class TrayItemView(APIView):
     def delete(self, request, pk):
         tray = TrayItem.objects.get(id=pk)
         tray.delete()
-        return Response(status=status.HTTP_200_OK)
-    
+        return Response({'message':'Deleted Successfully'},status=status.HTTP_200_OK)
+
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 class StationView(APIView):
     def get(self, request, location):
         station = Station.objects.filter(location=location)
@@ -42,6 +46,8 @@ class StationView(APIView):
 
         return Response(serializer.data)
 
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
 class MealView(APIView):
     def get(self, request, station):
         meal = Meal.objects.filter(station=station)

@@ -4,6 +4,7 @@ from .models import TrayItem, Station, Meal, Order
 class TrayItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrayItem
+        depth = 1
         fields = '__all__'
 
 class StationSerializer(serializers.ModelSerializer):
