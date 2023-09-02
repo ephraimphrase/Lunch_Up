@@ -13,15 +13,16 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 class TrayItemView(APIView):
-    def post(self, request, meal_id):
-        meal = get_object_or_404(Meal, id=meal_id)
+    def post(self, request, pk):
+        meal = get_object_or_404(Meal, id=pk)
         tray, created = TrayItem.objects.get_or_create(owner=request.user, meal=meal)
 
         if not created:
             tray.quantity += 1
             tray.save()
         
-        serializer = TrayItemSerializer(tray, many=True)
+        new_tray = TrayItem.objects.filter(owner=request.user)
+        serializer = TrayItemSerializer(new_tray, many=True)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
@@ -35,7 +36,31 @@ class TrayItemView(APIView):
     def delete(self, request, pk):
         tray = TrayItem.objects.get(id=pk)
         tray.delete()
-        return Response({'message':'Deleted Successfully'},status=status.HTTP_200_OK)
+        new_tray = TrayItem.objects.filter(owner=request.user)
+        serializer = TrayItemSerializer(new_tray, many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated])
+class SubtractView(APIView):
+    def post(self, request, pk):
+        tray = TrayItem.objects.get(id=pk)
+        tray.quantity -=1
+        tray.save()
+
+        new_tray = TrayItem.objects.filter(owner=request.user)
+        serializer = TrayItemSerializer(new_tray, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        owner = User.objects.get(username=pk)
+        tray = TrayItem.objects.filter(owner=owner)
+
+        tray.delete()
+        new_tray = TrayItem.objects.filter(owner=owner)
+        serializer = TrayItemSerializer(new_tray)
+        return Response(serializer.data,status=status.HTTP_200_OK)
 
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
@@ -49,7 +74,8 @@ class StationView(APIView):
 @authentication_classes([JWTAuthentication])
 @permission_classes([IsAuthenticated])
 class MealView(APIView):
-    def get(self, request, station):
+    def get(self, request, id):
+        station = Station.objects.get(id=id)
         meal = Meal.objects.filter(station=station)
         serializer = MealSerializer(meal, many=True)
 
@@ -59,18 +85,20 @@ class MealView(APIView):
 @permission_classes([IsAuthenticated])   
 class OrderView(APIView):
     def get(self, request, pk):
-        owner = User.objects.get(id=pk)
+        owner = User.objects.get(username=pk)
         order = Order.objects.filter(owner=owner)
         serializer = OrderSerializer(order, many=True)
 
         return Response(serializer.data)
     
-    def post(self, request, station):
+    def post(self, request, pk):
         tray_item = TrayItem.objects.filter(owner=request.user)
-        order = Order.objects.create(station=station, owner=request.owner, tray_item=tray_item)
+        station = Station.objects.get(id=pk)
+        order = Order.objects.create(station=station, owner=request.user)
+        order.tray_item.set(tray_item)
         order.save()
 
-        serializer = OrderSerializer(order, many=True)
+        serializer = OrderSerializer(order)
 
         return Response(serializer.data)
         
