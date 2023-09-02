@@ -8,6 +8,7 @@ from .serializers import TrayItemSerializer, StationSerializer, MealSerializer, 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
+import uuid
 
 # Create your views here.
 @authentication_classes([JWTAuthentication])
@@ -94,7 +95,7 @@ class OrderView(APIView):
     def post(self, request, pk):
         tray_item = TrayItem.objects.filter(owner=request.user)
         station = Station.objects.get(id=pk)
-        order = Order.objects.create(station=station, owner=request.user)
+        order = Order.objects.create(station=station, owner=request.user, number=str(uuid.uuid4())[:5])
         order.tray_item.set(tray_item)
         order.save()
 
